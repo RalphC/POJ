@@ -1,11 +1,14 @@
 // POJ2965.cpp: 定义控制台应用程序的入口点。
-//
+// POJ2965解法：对于一个点(x, y)，对与行x上与列y上其它所有点进行一次开关操作
+// 最后对(x, y)进行一次开关操作，则可以使得结果为仅有(x, y)点状态取反
+// 对所有需取反点进行统计，并去除偶数次操作点，剩余便是答案
 
 #include "stdafx.h"
 #include <iostream>
 #include <vector>
 
 bool switchArray[4][4];
+bool recordArray[4][4];
 int result = 0;
 int flag = 0;
 
@@ -19,66 +22,19 @@ struct pair {
 };
 std::vector<pair> opList;
 
-void checkopen()
-{
-	for (int i = 0; i < 4; i++)
-	{
-		for (int j = 0; j < 4; j++)
-		{
-			if (switchArray[i][j] == false)
-			{
-				flag = 0;
-				return;
-			}
-		}
-	}
-
-	flag = 1;
-}
-
 void openSwitch(int x, int y)
 {
 	for (int i = 0; i < 4; i++)
 	{
-		switchArray[i][y] = !switchArray[i][y];
+		recordArray[i][y] = !recordArray[i][y];
 	}
 
 	for (int i = 0; i < 4; i++)
 	{
-		switchArray[x][i] = !switchArray[x][i];
+		recordArray[x][i] = !recordArray[x][i];
 	}
 
-	switchArray[x][y] = !switchArray[x][y];
-}
-
-void Search(int x, int y, int step)
-{
-	if (step == result)
-	{
-		checkopen();
-		return;
-	}
-
-	if (x == 4 || flag == 1) return;
-
-	openSwitch(x, y);
-	opList.push_back(pair(x, y));
-	if (y == 3)
-	{
-		Search(x + 1, 0, step + 1);
-		if (flag == 1) return;
-		openSwitch(x, y);
-		opList.pop_back();
-		Search(x + 1, 0, step);
-	}
-	else
-	{
-		Search(x, y + 1, step + 1);
-		if (flag == 1) return;
-		openSwitch(x, y);
-		opList.pop_back();
-		Search(x, y + 1, step);
-	}
+	recordArray[x][y] = !recordArray[x][y];
 }
 
 int main()
@@ -91,22 +47,38 @@ int main()
 			std::cin >> a;
 			if (a == '+') switchArray[i][j] = false;
 			else switchArray[i][j] = true;
+			recordArray[i][j] = false;
 		}
 	}
 
-	for (result = 0; result < 17; result++)
+	for (int i = 0; i < 4; i++)
 	{
-		Search(0, 0, 0);
-		if (flag == 1) break;
+		for (int j = 0; j < 4; j++)
+		{
+			if (switchArray[i][j] == false)
+			{
+				openSwitch(i, j);
+			}
+		}
 	}
 
-	if (flag == 1) {
-		std::cout << result << '\n';
-		for (std::vector<pair>::iterator it = opList.begin(); it != opList.end(); ++it)
-			std::cout << it->x + 1 << ' ' << it->y + 1 << '\n';
+	int result = 0;
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			if (recordArray[i][j] == true)
+			{
+				opList.push_back(pair(i, j));
+				result++;
+			}
+		}
 	}
-	else std::cout << "Impossible";
-	//std::cin >> a;
+
+	std::cout << result << '\n';
+	for (std::vector<pair>::iterator it = opList.begin(); it != opList.end(); ++it)
+		std::cout << it->x + 1 << ' ' << it->y + 1 << '\n';
+	std::cin >> a;
 
 	return 0;
 }
